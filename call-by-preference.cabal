@@ -1,0 +1,87 @@
+cabal-version:       2.4
+
+-- Package name, version and description.
+name:                call-by-preference
+version:             0.1.0.0
+category:            Control
+synopsis:
+  Evaluation strategies as algebraic effects and handlers.
+description:
+  This library provides an implementation for explicitly modelling evaluation strategies of
+  effectful computations using algebraic effects and handlers.
+
+-- Copyright information.
+author:              Justin Andresen, Jan Christiansen
+maintainer:          jan.christiansen@hs-flensburg.de
+
+license-file:        LICENSE
+license:             BSD-3-Clause
+copyright:           (c) 2020 Flensburg University of Applied Sciences and Kiel University
+
+-- Links.
+homepage:            https://github.com/FreeProving/call-by-preference
+bug-reports:         https://github.com/FreeProving/call-by-preference/issues
+
+-- Build configuration.
+build-type:          Simple
+extra-source-files:  CHANGELOG.md
+                   , README.md
+
+-- Common settings and dependencies that are used by all stanzas below.
+common deps
+  build-depends:     base       >=4.12 && <4.15
+                   , containers >=0.6  && <0.7
+                   , extra      >=1.7  && <1.8
+  default-language:  Haskell2010
+  ghc-options:       -Wall -fwarn-redundant-constraints
+
+library
+  import:            deps
+  hs-source-dirs:    src/lib
+  exposed-modules:   Control.Prog
+                   , Control.Prog.Effect.Deferred
+                   , Control.Prog.Effect.Embed
+                   , Control.Prog.Effect.Error
+                   , Control.Prog.Effect.Fail
+                   , Control.Prog.Effect.Input
+                   , Control.Prog.Effect.Let
+                   , Control.Prog.Effect.NonDet
+                   , Control.Prog.Effect.None
+                   , Control.Prog.Effect.Output
+                   , Control.Prog.Effect.Prob
+                   , Control.Prog.Effect.Reader
+                   , Control.Prog.Effect.Ref
+                   , Control.Prog.Effect.State
+                   , Control.Prog.Effect.Trace
+                   , Control.Prog.Effect.Writer
+                   , Control.Prog.Effect.Yield
+  other-modules:     Control.Prog.Class
+                   , Control.Prog.Prog
+                   , Control.Prog.Signature
+                   , Control.Prog.Util.List
+                   , Control.Prog.Util.Upcast
+
+test-suite call-by-preference-tests
+  import:            deps
+  type:              exitcode-stdio-1.0
+  hs-source-dirs:    src/test
+  main-is:           Spec.hs
+  ghc-options:       -main-is Spec
+  other-modules:     Control.Prog.Effect.DeferredTests
+                   , Control.Prog.Effect.ErrorTests
+                   , Control.Prog.Effect.FailTests
+                   , Control.Prog.Effect.FailTests
+                   , Control.Prog.Effect.InputTests
+                   , Control.Prog.Effect.NonDetTests
+                   , Control.Prog.Effect.OutputTests
+                   , Control.Prog.Effect.ProbTests
+                   , Control.Prog.Effect.ReaderTests
+                   , Control.Prog.Effect.RefTests
+                   , Control.Prog.Effect.StateTests
+                   , Control.Prog.Effect.TraceTests
+                   , Control.Prog.Effect.WriterTests
+                   , Control.Prog.Effect.YieldTests
+                   , Control.Prog.Util.Tags
+  build-depends:     call-by-preference
+                   , hspec                >=2.7  && <2.8
+                   , QuickCheck           >=2.14 && <2.15

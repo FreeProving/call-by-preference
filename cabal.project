@@ -1,0 +1,8 @@
+-- Cabal configuration file for this package.
+packages: ./call-by-preference.cabal
+
+-- Configure this package to compile only if there are no compile time
+-- warnings in production mode. To disable fatal warnings during development
+-- pass `--ghc-option=-Wwarn` to `cabal`.
+package call-by-preference
+  ghc-options: -Werror
