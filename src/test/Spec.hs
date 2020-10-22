@@ -2,6 +2,7 @@ module Spec (main) where
 
 import           Test.Hspec                      (hspec)
 
+import           Control.Prog.Effect.CutTests    (testCutEffect)
 import           Control.Prog.Effect.ErrorTests  (testErrorEffect)
 import           Control.Prog.Effect.FailTests   (testFailEffect)
 import           Control.Prog.Effect.InputTests  (testInputEffect)
@@ -17,6 +18,7 @@ import           Control.Prog.Effect.YieldTests  (testYieldEffect)
 
 main :: IO ()
 main = hspec $ do
+  testCutEffect
   testErrorEffect
   testFailEffect
   testInputEffect

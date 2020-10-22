@@ -39,6 +39,7 @@ library
   import:            deps
   hs-source-dirs:    src/lib
   exposed-modules:   Control.Prog
+                   , Control.Prog.Effect.Cut
                    , Control.Prog.Effect.Deferred
                    , Control.Prog.Effect.Embed
                    , Control.Prog.Effect.Error
@@ -67,7 +68,8 @@ test-suite call-by-preference-tests
   hs-source-dirs:    src/test
   main-is:           Spec.hs
   ghc-options:       -main-is Spec
-  other-modules:     Control.Prog.Effect.DeferredTests
+  other-modules:     Control.Prog.Effect.CutTests
+                   , Control.Prog.Effect.DeferredTests
                    , Control.Prog.Effect.ErrorTests
                    , Control.Prog.Effect.FailTests
                    , Control.Prog.Effect.FailTests
