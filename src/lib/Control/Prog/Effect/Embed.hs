@@ -1,7 +1,7 @@
 {-# LANGUAGE EmptyCase        #-}
+{-# LANGUAGE ExplicitForAll   #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
-{-# LANGUAGE RankNTypes       #-}
 {-# LANGUAGE TypeOperators    #-}
 
 module Control.Prog.Effect.Embed

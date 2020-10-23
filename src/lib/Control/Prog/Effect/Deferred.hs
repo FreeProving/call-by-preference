@@ -1,7 +1,4 @@
-{-# LANGUAGE DeriveFunctor       #-}
 {-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE KindSignatures      #-}
-{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators       #-}
 
@@ -16,8 +13,7 @@ module Control.Prog.Effect.Deferred
 where
 
 import           Control.Prog.Class     (HInvariant (hinvmap),
-                                         SigFunctor (sigmap), Syntax (handle),
-                                         hmap')
+                                         SigFunctor (sigmap), Syntax (handle))
 import           Control.Prog.Prog      (Prog (Op, Var))
 import           Control.Prog.Signature ((:+:) (Inl, Inr), (:<:), inject)
 

@@ -1,7 +1,6 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE KindSignatures   #-}
-{-# LANGUAGE RankNTypes       #-}
-{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module Control.Prog.Effect.Writer
   ( -- * Effect
@@ -52,9 +51,7 @@ runWriter
   => Prog (Writer w :+: sig) a -> Prog sig (w, a)
 runWriter = runWriter' mempty
  where
-  runWriter'
-    :: (Syntax sig, Monoid w)
-    => w -> Prog (Writer w :+: sig) a -> Prog sig (w, a)
+  runWriter' :: forall x. w -> Prog (Writer w :+: sig) x -> Prog sig (w, x)
   runWriter' w (Var a                 ) = return (w, a)
   runWriter' w (Op  (Inl (Tell w' mx))) = runWriter' (w `mappend` w') mx
   runWriter' w (Op  (Inr sig         )) =

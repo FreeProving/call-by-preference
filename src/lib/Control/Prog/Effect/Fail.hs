@@ -1,7 +1,7 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE KindSignatures   #-}
-{-# LANGUAGE RankNTypes       #-}
-{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module Control.Prog.Effect.Fail
   ( -- * Effect
@@ -51,6 +51,6 @@ runFail (Var x         ) = return (Just x)
 runFail (Op  (Inl Fail)) = return Nothing
 runFail (Op  (Inr sig )) = Op (handle (Just ()) hdl sig)
  where
-  hdl :: (Syntax sig) => Maybe (Prog (Fail :+: sig) x) -> Prog sig (Maybe x)
+  hdl :: Maybe (Prog (Fail :+: sig) x) -> Prog sig (Maybe x)
   hdl Nothing   = return Nothing
   hdl (Just fx) = runFail fx

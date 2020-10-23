@@ -8,7 +8,7 @@ import           Test.Hspec                   (Spec, context, describe, it,
 import           Control.Prog                 (run)
 import           Control.Prog.Effect.Deferred (force, runDeferred)
 import           Control.Prog.Effect.Reader   (local, runReader)
-import           Control.Prog.Effect.State    (execState, modify, runState)
+import           Control.Prog.Effect.State    (execState, modify)
 
 testDeferredEffect :: Spec
 testDeferredEffect = describe "Control.Prog.Effect.Deferred" $ do

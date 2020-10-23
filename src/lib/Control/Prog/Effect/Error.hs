@@ -1,7 +1,6 @@
+{-# LANGUAGE ExplicitForAll   #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
-{-# LANGUAGE KindSignatures   #-}
-{-# LANGUAGE RankNTypes       #-}
 {-# LANGUAGE TypeOperators    #-}
 
 module Control.Prog.Effect.Error

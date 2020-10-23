@@ -1,7 +1,7 @@
-{-# LANGUAGE DeriveFunctor    #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE RankNTypes       #-}
-{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE DeriveFunctor       #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module Control.Prog.Effect.Prob
   ( -- * Effect
@@ -19,7 +19,7 @@ module Control.Prog.Effect.Prob
   )
 where
 
-import           Control.Monad          (ap, join, liftM, liftM2)
+import           Control.Monad          (ap, join, liftM2)
 import           Data.Function          (on)
 import           Data.List              (intercalate)
 
@@ -66,11 +66,11 @@ runProb :: forall a sig. (Syntax sig) => Prog (Prob :+: sig) a -> Prog sig (Dist
 runProb (Var x)                       = return (return x)
 runProb (Op (Inl (Choice pr px py)))  = liftM2 (pick pr) (runProb px) (runProb py)
 runProb (Op (Inr sig))                = Op (handle (return ()) hdl sig)
-  where
-    hdl :: (Syntax sig) => Dist (Prog (Prob :+: sig) a) -> Prog sig (Dist a)
-    hdl (Dist ps) = do
-      ds <- mapM (\(pd, p) -> liftM (\x -> (x,p)) (runProb pd)) ps
-      return (join (Dist ds))
+ where
+  hdl :: forall x. Dist (Prog (Prob :+: sig) x) -> Prog sig (Dist x)
+  hdl (Dist ps) = do
+    ds <- mapM (\(pd, p) -> fmap (\x -> (x,p)) (runProb pd)) ps
+    return (join (Dist ds))
 
 ---------------
 -- Semantics --

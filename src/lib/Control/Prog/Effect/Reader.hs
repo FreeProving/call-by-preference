@@ -1,7 +1,6 @@
+{-# LANGUAGE ExplicitForAll   #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
-{-# LANGUAGE KindSignatures   #-}
-{-# LANGUAGE RankNTypes       #-}
 {-# LANGUAGE TypeOperators    #-}
 
 module Control.Prog.Effect.Reader
@@ -26,7 +25,7 @@ import           Control.Prog.Signature ((:+:) (Inl, Inr), (:<:), inject)
 -- Effect --
 ------------
 
-data Reader r (m :: * -> *) a where
+data Reader r m a where
   Ask   ::                    (r -> m a) -> Reader r m a
   Local :: (r -> r) -> m x -> (x -> m a) -> Reader r m a
 
@@ -62,9 +61,9 @@ local g mx = inject (Local g mx return)
 --------------
 
 runReader :: forall r a sig. (Syntax sig) => r -> Prog (Reader r :+: sig) a -> Prog sig a
-runReader _ (Var a                 ) = return a
+runReader _ (Var a                   ) = return a
 runReader r (Op  (Inl (Ask        k))) = runReader r (k r)
 runReader r (Op  (Inl (Local g mx k))) = do
   x <- runReader (g r) mx
   runReader r (k x)
-runReader r (Op  (Inr sig         )) = Op (hmap' (runReader r) sig)
+runReader r (Op  (Inr sig           )) = Op (hmap' (runReader r) sig)

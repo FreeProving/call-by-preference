@@ -1,7 +1,7 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE KindSignatures   #-}
-{-# LANGUAGE RankNTypes       #-}
-{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module Control.Prog.Effect.NonDet
   ( -- * Effect
@@ -64,5 +64,5 @@ runNonDet (Op  (Inl (Choose mx my))) = liftM2 (++) (runNonDet mx) (runNonDet my)
 runNonDet (Op  (Inl Fail          )) = return []
 runNonDet (Op  (Inr sig           )) = Op (handle [()] hdl sig)
  where
-  hdl :: (Syntax sig) => [Prog (NonDet :+: sig) x] -> Prog sig [x]
+  hdl :: [Prog (NonDet :+: sig) x] -> Prog sig [x]
   hdl = concatMapM runNonDet
