@@ -7,7 +7,8 @@ import           Test.Hspec                   (Spec, context, describe, it,
 
 import           Control.Prog                 (run)
 import           Control.Prog.Effect.Deferred (force, runDeferred)
-import           Control.Prog.Effect.State    (execState, modify)
+import           Control.Prog.Effect.Reader   (local, runReader)
+import           Control.Prog.Effect.State    (execState, modify, runState)
 
 testDeferredEffect :: Spec
 testDeferredEffect = describe "Control.Prog.Effect.Deferred" $ do
@@ -23,4 +24,7 @@ testRunDeferred = context "runDeferred" $ do
     result `shouldBe` 1
   it "runs the deferred computation at most once" $ do
     let result = run (execState @Int 0 (runDeferred (modify @Int succ) (force @() >> force @())))
+    result `shouldBe` 1
+  it "runs the deferred computation at most once in the presence of scoped effects" $ do
+    let result = run (runReader False (execState @Int 0 (runDeferred (modify @Int succ) (local not (force @()) >> force @()))))
     result `shouldBe` 1

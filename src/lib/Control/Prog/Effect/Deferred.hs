@@ -1,7 +1,9 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE KindSignatures   #-}
-{-# LANGUAGE RankNTypes       #-}
-{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE DeriveFunctor       #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module Control.Prog.Effect.Deferred
   ( -- * Effect
@@ -47,11 +49,11 @@ force = inject (Force return)
 --------------
 
 runDeferred :: forall v a sig. (Syntax sig) => Prog sig v -> Prog (Deferred v :+: sig) a -> Prog sig a
-runDeferred _  (Var x              ) = return x
-runDeferred mv (Op  (Inl (Force k))) = do { v <- mv; runForced v (k v) }
-runDeferred mv (Op  (Inr sig      )) = Op (hmap' (runDeferred mv) sig)
-
-runForced :: forall v a sig. (Syntax sig) => v -> Prog (Deferred v :+: sig) a -> Prog sig a
-runForced _ (Var x              ) = return x
-runForced v (Op  (Inl (Force k))) = runForced v (k v)
-runForced v (Op  (Inr sig      )) = Op (hmap' (runForced v) sig)
+runDeferred pv = fmap snd . runDeferred' Nothing
+ where
+  runDeferred' :: forall x. Maybe v -> Prog (Deferred v :+: sig) x -> Prog sig (Maybe v, x)
+  runDeferred' mv (Var x               ) = return (mv, x)
+  runDeferred' mv (Op  (Inl (Force k)))  = case mv of
+    Nothing -> do { v <- pv; runDeferred' (Just v) (k v) }
+    Just v  -> runDeferred' (Just v) (k v)
+  runDeferred' mv (Op  (Inr sig       )) = Op (handle (mv, ()) (uncurry runDeferred') sig)

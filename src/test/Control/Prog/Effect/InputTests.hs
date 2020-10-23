@@ -2,13 +2,14 @@
 
 module Control.Prog.Effect.InputTests (testInputEffect) where
 
-import           Test.Hspec                (Spec, context, describe, it,
-                                            shouldBe)
+import           Test.Hspec                 (Spec, context, describe, it,
+                                             shouldBe)
 
-import           Control.Prog              (run)
-import           Control.Prog.Effect.Error (runError)
-import           Control.Prog.Effect.Input (EndOfInput (EndOfInput), input,
-                                            runInputFromList)
+import           Control.Prog               (run)
+import           Control.Prog.Effect.Error  (runError)
+import           Control.Prog.Effect.Input  (EndOfInput (EndOfInput), input,
+                                             runInputFromList)
+import           Control.Prog.Effect.Reader (local, runReader)
 
 testInputEffect :: Spec
 testInputEffect = describe "Control.Prog.Effect.Input" $ do
@@ -24,6 +25,9 @@ testRunInputFromList = context "runInputFromList" $ do
     result `shouldBe` Right "input 1"
   it "reads input from the left to right" $ do
     let result = run (runError @EndOfInput (runInputFromList ["input 1", "input 2"] (input >> input)))
+    result `shouldBe` Right "input 2"
+  it "does not read input twice in the presence of scoped effects" $ do
+    let result = run (runReader False (runError @EndOfInput (runInputFromList ["input 1", "input 2"] (local not input >> input))))
     result `shouldBe` Right "input 2"
   it "throws an error when input is missing" $ do
     let result = run (runError @EndOfInput (runInputFromList [] input))

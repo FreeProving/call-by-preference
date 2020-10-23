@@ -21,6 +21,7 @@ module Control.Prog.Effect.Input
 where
 
 import           Control.Monad.IO.Class    (MonadIO, liftIO)
+import           Data.Composition          ((.:))
 import           System.IO                 (Handle, hGetLine, stdin)
 
 import           Control.Prog.Class        (HInvariant (hinvmap),
@@ -71,8 +72,12 @@ hRunInputIO h (Op (Inr sig      )) = Op (hmap' (hRunInputIO @m h) sig)
 data EndOfInput = EndOfInput
  deriving (Eq, Show)
 
-runInputFromList :: (Syntax sig, Error EndOfInput :<: sig) => [String] -> Prog (Input :+: sig) a -> Prog sig a
-runInputFromList _         (Var x             ) = return x
-runInputFromList []        (Op (Inl (Input _))) = throw EndOfInput
-runInputFromList (x : xs') (Op (Inl (Input k))) = runInputFromList xs' (k x)
-runInputFromList xs        (Op (Inr sig      )) = Op (hmap' (runInputFromList xs) sig)
+runInputFromList :: forall a sig. (Syntax sig, Error EndOfInput :<: sig) => [String] -> Prog (Input :+: sig) a -> Prog sig a
+runInputFromList = fmap snd .: runInputFromList'
+ where
+  runInputFromList' :: forall x. [String] -> Prog (Input :+: sig) x -> Prog sig ([String], x)
+  runInputFromList' vs        (Var x             ) = return (vs, x)
+  runInputFromList' vs        (Op (Inl (Input k))) = case vs of
+    []      -> throw EndOfInput
+    v : vs' -> runInputFromList' vs' (k v)
+  runInputFromList' vs        (Op (Inr sig      )) = Op (handle (vs, ()) (uncurry runInputFromList') sig)
