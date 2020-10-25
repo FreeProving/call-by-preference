@@ -39,6 +39,9 @@ testRunCut = context "runCut" $ do
   it "limits the scope of cut if there is a enclosing call" $ do
     let result = run (runNonDet (runCut (choose (call (choose (cut >> return 1) (return 2))) (return 3))))
     result `shouldBe` [1, 3 :: Int]
+  it "does not duplicate branches after call" $ do
+    let result = run (runNonDet (runCut (choose (call (choose (return 1) (return 2))) (return 3))))
+    result `shouldBe` [1, 2, 3 :: Int]
 
   context "with runReader" $ do
     it "finds all results if there is no cut" $ do

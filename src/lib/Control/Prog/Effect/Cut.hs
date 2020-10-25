@@ -80,7 +80,11 @@ runCut = runCut' True >=> maybe fail return . value
   runCut' :: forall x. Bool -> Prog (Cut :+: sig) x -> Prog sig (Result x)
   runCut' b (Var x               ) = return (Result b (Just x))
   runCut' _ (Op (Inl Cutfail    )) = return (Result False Nothing)
-  runCut' b (Op (Inl (Call mx k))) = runCut mx >>= runCut' b . k
+  runCut' b (Op (Inl (Call mx k))) = do
+    rx <- runCut' b mx
+    case (value rx) of
+      Nothing -> return (Result b Nothing)
+      Just x  -> runCut' (backtrack rx) (k x)
   runCut' b (Op (Inr sig        )) = case prj sig of
     Just Fail           -> return (Result b Nothing)
     Just (Choose ml mr) -> do
