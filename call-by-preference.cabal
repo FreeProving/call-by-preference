@@ -49,6 +49,7 @@ library
                    , Control.Prog.Effect.NonDet
                    , Control.Prog.Effect.None
                    , Control.Prog.Effect.Output
+                   , Control.Prog.Effect.OutputFile
                    , Control.Prog.Effect.Prob
                    , Control.Prog.Effect.Reader
                    , Control.Prog.Effect.Ref
