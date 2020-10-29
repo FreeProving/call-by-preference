@@ -31,9 +31,9 @@ import           Control.Prog.Effect.Error (Error, throw)
 import           Control.Prog.Prog         (Prog (Op, Var))
 import           Control.Prog.Signature    ((:+:) (Inl, Inr), (:<:), inject)
 
--------------
--- Efffect --
--------------
+------------
+-- Effect --
+------------
 
 data Input m a = Input (String -> m a)
 

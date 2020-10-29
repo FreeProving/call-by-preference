@@ -44,6 +44,7 @@ library
                    , Control.Prog.Effect.Error
                    , Control.Prog.Effect.Fail
                    , Control.Prog.Effect.Input
+                   , Control.Prog.Effect.InputFile
                    , Control.Prog.Effect.Let
                    , Control.Prog.Effect.NonDet
                    , Control.Prog.Effect.None

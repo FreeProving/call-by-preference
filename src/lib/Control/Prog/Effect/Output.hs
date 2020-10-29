@@ -30,9 +30,9 @@ import           Control.Prog.Effect.Embed (Embed, embed)
 import           Control.Prog.Prog         (Prog (Op, Var))
 import           Control.Prog.Signature    ((:+:) (Inl, Inr), (:<:), inject)
 
--------------
--- Efffect --
--------------
+------------
+-- Effect --
+------------
 
 data Output m a = Output String (m a)
 
