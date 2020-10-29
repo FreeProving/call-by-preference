@@ -44,7 +44,6 @@ data OutputFile m a where
   Output     :: OutStream -> String -> m a                -> OutputFile m a
   FlushOut   :: OutStream           -> m a                -> OutputFile m a
 
-
 instance SigFunctor OutputFile where
   sigmap f (OpenOut    filename      k ) = OpenOut    filename      (f . k)
   sigmap f (OpenAppend filename      k ) = OpenAppend filename      (f . k)
@@ -90,10 +89,10 @@ flushOut outStream = inject (FlushOut outStream (return ()))
 --------------
 
 runOutputFile :: forall m a sig. (Syntax sig, MonadIO m, Embed m :<: sig) => Prog (OutputFile :+: sig) a -> Prog sig a
-runOutputFile (Var x)                                   = return x
+runOutputFile (Var x)                                  = return x
 runOutputFile (Op (Inl (OpenOut    filename      k ))) = embed (liftIO @m (openFile filename WriteMode)) >>= runOutputFile @m . k . OutStream
 runOutputFile (Op (Inl (OpenAppend filename      k ))) = embed (liftIO @m (openFile filename AppendMode)) >>= runOutputFile @m . k . OutStream
 runOutputFile (Op (Inl (CloseOut   outStream     mx))) = embed (liftIO @m (hClose (outHandle outStream))) >> runOutputFile @m mx
 runOutputFile (Op (Inl (Output     outStream str mx))) = embed (liftIO @m (hPutStr (outHandle outStream) str)) >> runOutputFile @m mx
 runOutputFile (Op (Inl (FlushOut   outStream     mx))) = embed (liftIO @m (hFlush (outHandle outStream))) >> runOutputFile @m mx
-runOutputFile (Op (Inr sig                           )) = Op (hmap' (runOutputFile @m) sig)
+runOutputFile (Op (Inr sig                          )) = Op (hmap' (runOutputFile @m) sig)
