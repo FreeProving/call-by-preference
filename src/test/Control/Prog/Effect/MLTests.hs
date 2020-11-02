@@ -85,7 +85,7 @@ testOutput = context "output effect" $ do
   after_ (removeFile "roses.txt") $ do
     it "performs all outputs in cbv" $ do
       result <- runM (runOutputFile @IO (runInputFile @IO (runCBV @ML (writePoem (return "roses.txt") >> readPoem (return "roses.txt")))))
-      result `shouldBe` ["Roses are red,", "Violets are blue.", "I have a gun.", "Get in the van.\n"]
+      result `shouldBe` ["Roses are red,", "Violets are blue.", "I have a gun.", "Get in the van."]
   it "it evaluates effect-free expressions" $ do
     let result = run (runCBV @ML strict)
     result `shouldBe` 42

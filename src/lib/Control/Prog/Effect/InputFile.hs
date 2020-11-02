@@ -31,6 +31,7 @@ import           Control.Prog.Class        (HInvariant (hinvmap),
 import           Control.Prog.Effect.Embed (Embed, embed)
 import           Control.Prog.Prog         (Prog (Op, Var))
 import           Control.Prog.Signature    ((:+:) (Inl, Inr), (:<:), inject)
+import           Control.Prog.Util.List    (forceSpine)
 
 ------------
 -- Effect --
@@ -98,7 +99,9 @@ runInputFile :: forall m a sig. (Syntax sig, MonadIO m, Embed m :<: sig) => Prog
 runInputFile (Var x)                              = return x
 runInputFile (Op (Inl (OpenIn      filename k ))) = embed (liftIO @m (openFile filename ReadMode)) >>= runInputFile @m . k . InStream
 runInputFile (Op (Inl (CloseIn     inStream mx))) = embed (liftIO @m (hClose (inHandle inStream))) >> runInputFile @m mx
-runInputFile (Op (Inl (InputAll    inStream k ))) = embed (liftIO @m (hGetContents (inHandle inStream))) >>= runInputFile @m . k
+runInputFile (Op (Inl (InputAll    inStream k ))) = do
+  contents <- embed (liftIO @m (hGetContents (inHandle inStream)))
+  forceSpine contents `seq` runInputFile @m (k contents)
 runInputFile (Op (Inl (InputLine   inStream k ))) = embed (liftIO @m (hGetLine (inHandle inStream))) >>= runInputFile @m . k
 runInputFile (Op (Inl (EndOfStream inStream k ))) = embed (liftIO @m (hIsEOF (inHandle inStream))) >>= runInputFile @m . k
 runInputFile (Op (Inr sig                      )) = Op (hmap' (runInputFile @m) sig)
