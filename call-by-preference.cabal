@@ -54,6 +54,7 @@ library
                    , Control.Prog.Effect.Reader
                    , Control.Prog.Effect.Ref
                    , Control.Prog.Effect.State
+                   , Control.Prog.Effect.TextIO
                    , Control.Prog.Effect.Trace
                    , Control.Prog.Effect.Writer
                    , Control.Prog.Effect.Yield
@@ -74,6 +75,7 @@ test-suite call-by-preference-tests
                    , Control.Prog.Effect.FailTests
                    , Control.Prog.Effect.FailTests
                    , Control.Prog.Effect.InputTests
+                   , Control.Prog.Effect.MLTests
                    , Control.Prog.Effect.NonDetTests
                    , Control.Prog.Effect.OutputTests
                    , Control.Prog.Effect.ProbTests
