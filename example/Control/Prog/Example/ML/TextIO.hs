@@ -2,7 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators       #-}
 
-module Control.Prog.Effect.TextIO
+module Control.Prog.Example.ML.TextIO
   ( -- * Input
     InStream
   , openIn
@@ -20,12 +20,11 @@ module Control.Prog.Effect.TextIO
   )
 where
 
+import           Control.Prog                   ((:<:), Prog)
 import           Control.Prog.Effect.InputFile  (InStream, InputFile)
 import qualified Control.Prog.Effect.InputFile  as InputFile
 import           Control.Prog.Effect.OutputFile (OutStream, OutputFile)
 import qualified Control.Prog.Effect.OutputFile as OutputFile
-import           Control.Prog.Prog              (Prog)
-import           Control.Prog.Signature         ((:<:))
 
 -----------
 -- Input --

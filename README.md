@@ -67,6 +67,16 @@ The `--ghc-option`s have to be specified before Hspec options.
 cabal new-run call-by-preference-tests --ghc-option -Wwarn -- [OPTIONS...]
 ```
 
+## Examples
+
+There are additional examples for the usage of the library in the `./example` directory.
+Some examples include Hspec test cases as well.
+The tests from the examples can be executed with the following command.
+
+```bash
+cabal new-run call-by-preference-examples
+```
+
 ## Usage
 
 The library provides a `Control.Prog` module that exports the infrastructure for the `Prog` monad, combination of signatures as well as the`Embed`, `Let` and `None` effects.
