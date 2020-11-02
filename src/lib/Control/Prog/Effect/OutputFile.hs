@@ -7,8 +7,8 @@
 
 module Control.Prog.Effect.OutputFile
   ( -- * Effect
-    OutputFile (OpenOut, OpenAppend, CloseOut, Output, FlushOut)
-  , OutStream
+    OutStream
+  , OutputFile (OpenOut, OpenAppend, CloseOut, Output, FlushOut)
     -- * Actions
   , openOut
   , openAppend

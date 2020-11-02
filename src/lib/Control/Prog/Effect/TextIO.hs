@@ -1,35 +1,66 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module Control.Prog.Effect.TextIO
-  ( -- * Effect
-    OutputFile
+  ( -- * Input
+    InStream
+  , openIn
+  , closeIn
+  , inputAll
+  , inputLine
+  , endOfStream
+    -- * Output
   , OutStream
-    -- * Actions
   , openOut
+  , openAppend
   , closeOut
   , output
-    -- * Handlers
+  , flushOut
   )
 where
 
-
+import           Control.Prog.Effect.InputFile  (InStream, InputFile)
+import qualified Control.Prog.Effect.InputFile  as InputFile
 import           Control.Prog.Effect.OutputFile (OutStream, OutputFile)
 import qualified Control.Prog.Effect.OutputFile as OutputFile
-
 import           Control.Prog.Prog              (Prog)
 import           Control.Prog.Signature         ((:<:))
 
+-----------
+-- Input --
+-----------
 
--------------
--- Actions --
--------------
+openIn :: (InputFile :<: sig) => Prog sig FilePath -> Prog sig InStream
+openIn pFilename = pFilename >>= InputFile.openIn
+
+closeIn :: (InputFile :<: sig) => Prog sig InStream -> Prog sig ()
+closeIn pInStream = pInStream >>= InputFile.closeIn
+
+inputAll :: (InputFile :<: sig) => Prog sig InStream -> Prog sig String
+inputAll pInStream = pInStream >>= InputFile.inputAll
+
+inputLine :: (InputFile :<: sig) => Prog sig InStream -> Prog sig String
+inputLine pInStream = pInStream >>= InputFile.inputLine
+
+endOfStream :: (InputFile :<: sig) => Prog sig InStream -> Prog sig Bool
+endOfStream pInStream = pInStream >>= InputFile.endOfStream
+
+------------
+-- Output --
+------------
 
 openOut :: (OutputFile :<: sig) => Prog sig FilePath -> Prog sig OutStream
-openOut pfilename = pfilename >>= OutputFile.openOut
+openOut pFilename = pFilename >>= OutputFile.openOut
+
+openAppend :: (OutputFile :<: sig) => Prog sig FilePath -> Prog sig OutStream
+openAppend pFilename = pFilename >>= OutputFile.openAppend
 
 closeOut :: (OutputFile :<: sig) => Prog sig OutStream -> Prog sig ()
-closeOut poutStream = poutStream >>= OutputFile.closeOut
+closeOut pOutStream = pOutStream >>= OutputFile.closeOut
 
 output :: (OutputFile :<: sig) => Prog sig OutStream -> Prog sig String -> Prog sig ()
-output poutStream pstr = poutStream >>= \outStream -> pstr >>= OutputFile.output outStream
+output pOutStream pstr = pOutStream >>= \outStream -> pstr >>= OutputFile.output outStream
+
+flushOut :: (OutputFile :<: sig) => Prog sig OutStream -> Prog sig ()
+flushOut pOutStream = pOutStream >>= OutputFile.flushOut

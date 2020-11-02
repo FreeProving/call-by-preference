@@ -7,15 +7,18 @@
 
 module Control.Prog.Effect.MLTests where
 
-import           Control.Monad              (liftM2)
-import           Prelude                    hiding (fail, fst, repeat, snd,
-                                             take, undefined)
+import           Prelude                        hiding (fail, fst, repeat, snd,
+                                                 take, undefined)
 
-import           Test.Hspec                 (Spec, context, describe, it,
-                                             shouldBe)
+import           Control.Monad                  (liftM2)
+import           System.Directory               (removeFile)
+import           Test.Hspec                     (Spec, after_, context,
+                                                 describe, it, shouldBe)
 
 import           Control.Prog
-import qualified Control.Prog.Effect.TextIO as TextIO
+import           Control.Prog.Effect.InputFile  (InputFile, runInputFile)
+import           Control.Prog.Effect.OutputFile (OutputFile, runOutputFile)
+import qualified Control.Prog.Effect.TextIO     as TextIO
 
 
 -- ML-like language
@@ -45,12 +48,20 @@ add :: (SigFunctor sig) => Prog sig Int -> Prog sig Int -> Prog sig Int
 add = liftM2 (+)
 
 
-writePoem :: (Let ML :<: sig, TextIO.OutputFile :<: sig) => Prog sig String -> Prog sig ()
+writePoem :: (Let ML :<: sig, OutputFile :<: sig) => Prog sig String -> Prog sig ()
 writePoem fileName = do
   file <- let_ @ML (TextIO.openOut fileName)
   _ <- let_ @ML (TextIO.output file (return "Roses are red,\nViolets are blue.\n"))
   _ <- let_ @ML (TextIO.output file (return "I have a gun.\nGet in the van.\n"))
   TextIO.closeOut file
+
+readPoem :: (Let ML :<: sig, InputFile :<: sig) => Prog sig String -> Prog sig [String]
+readPoem fileName = do
+  file <- let_ @ML (TextIO.openIn fileName)
+  poem <- let_ @ML (TextIO.inputAll file)
+  _    <- let_ @ML (TextIO.closeIn file)
+  lines <$> poem
+
 
 strict :: (Let ML :<: sig) => Prog sig Int
 strict = do
@@ -71,9 +82,10 @@ testMLEffects = describe "Control.Prog.Effect.MLTests" $ do
 
 testOutput :: Spec
 testOutput = context "output effect" $ do
-  -- it "performs all outputs in cbv" $ do
-  --   let result = run (runOutputToList (runCBV @ML writePoem))
-  --   result `shouldBe` (["Roses are red,\nViolets are blue.\n", "I have a gun.\nGet in the van.\n"],())
+  after_ (removeFile "roses.txt") $ do
+    it "performs all outputs in cbv" $ do
+      result <- runM (runOutputFile @IO (runInputFile @IO (runCBV @ML (writePoem (return "roses.txt") >> readPoem (return "roses.txt")))))
+      result `shouldBe` ["Roses are red,", "Violets are blue.", "I have a gun.", "Get in the van.\n"]
   it "it evaluates effect-free expressions" $ do
     let result = run (runCBV @ML strict)
     result `shouldBe` 42

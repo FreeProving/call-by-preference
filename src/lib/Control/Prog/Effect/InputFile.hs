@@ -7,8 +7,8 @@
 
 module Control.Prog.Effect.InputFile
   ( -- * Effect
-    InStream,
-    InputFile (OpenIn, CloseIn, InputAll, InputLine, EndOfStream)
+    InStream
+  , InputFile (OpenIn, CloseIn, InputAll, InputLine, EndOfStream)
     -- * Actions
   , openIn
   , closeIn
