@@ -13,10 +13,18 @@ module Control.Prog.Example.ML
   , minus
   , mult
   , add
-  -- * File IO
-  -- $poem
+  , lt
+  , le
+  , eq
+  , neq
+  , ge
+  , gt
+    -- * File IO
+    -- $poem
   , writePoem
   , readPoem
+    -- * References
+  , decrementToZero
     -- * Tests
   , testMLExamples
   ) where
@@ -25,6 +33,10 @@ import           Prelude                        hiding (fail, fst, repeat, snd,
                                                  take, undefined)
 
 import           Control.Monad                  (liftM2)
+import           Control.Monad.Extra            (ifM)
+import           Control.Monad.Loops            (whileM_)
+import           Data.IORef                     (IORef)
+import           Data.Typeable                  (Typeable)
 import           System.Directory               (removeFile)
 import           Test.Hspec                     (Spec, after_, context,
                                                  describe, it, shouldBe)
@@ -32,11 +44,17 @@ import           Test.Hspec                     (Spec, after_, context,
 import           Control.Prog
 import           Control.Prog.Effect.InputFile  (InputFile, runInputFile)
 import           Control.Prog.Effect.OutputFile (OutputFile, runOutputFile)
+import           Control.Prog.Effect.Ref        (Ref, newRef, readRef, runIORef,
+                                                 writeRef)
 import qualified Control.Prog.Example.ML.TextIO as TextIO
 
 -- | Tag for 'Let' effects that should be handled like in ML-like languages
 --   (i.e., with call-by-value semantics).
 data ML
+
+---------------
+-- Factorial --
+---------------
 
 -- | Computes the factorial of the given computation's return value.
 --
@@ -64,6 +82,24 @@ mult = liftM2 (*)
 add :: (SigFunctor sig) => Prog sig Int -> Prog sig Int -> Prog sig Int
 add = liftM2 (+)
 
+lt :: Ord a => (SigFunctor sig) => Prog sig a -> Prog sig a -> Prog sig Bool
+lt = liftM2 (<)
+
+le :: Ord a => (SigFunctor sig) => Prog sig a -> Prog sig a -> Prog sig Bool
+le = liftM2 (<=)
+
+eq :: Eq a => (SigFunctor sig) => Prog sig a -> Prog sig a -> Prog sig Bool
+eq = liftM2 (==)
+
+neq :: Eq a => (SigFunctor sig) => Prog sig a -> Prog sig a -> Prog sig Bool
+neq = liftM2 (/=)
+
+ge :: Ord a => (SigFunctor sig) => Prog sig a -> Prog sig a -> Prog sig Bool
+ge = liftM2 (>=)
+
+gt :: Ord a => (SigFunctor sig) => Prog sig a -> Prog sig a -> Prog sig Bool
+gt = liftM2 (>)
+
 -------------
 -- File IO --
 -------------
@@ -90,17 +126,55 @@ readPoem fileName = do
   _    <- let_ @ML (TextIO.closeIn file)
   lines <$> poem
 
+----------------
+-- References --
+----------------
+
+decrementToZero
+  :: forall ref sig
+   . (Typeable (ref Int), Ref ref :<: sig, Let ML :<: sig)
+  => Prog sig (ref Int) -> Prog sig ()
+decrementToZero pRef = do
+  pRef' <- let_ @ML pRef
+  ref <- pRef'
+  ifM (readRef ref `lt` return 0)
+    {- then -} (writeRef ref 0)
+    {- else -} (whileM_ (readRef ref `gt` return 0)
+                  {- do -} (writeRef ref =<< (readRef ref `minus` return 1)))
+
 -----------
 -- Tests --
 -----------
 
 testMLExamples :: Spec
 testMLExamples = describe "Control.Prog.Example.ML" $ do
-  testTextIO
+  testPoem
+  testDecrementToZero
 
-testTextIO :: Spec
-testTextIO = context "TextIO" $ do
+testPoem :: Spec
+testPoem = context "writePoem and readPoem" $ do
   after_ (removeFile "roses.txt") $ do
     it "performs all outputs in a call-by-value setting" $ do
       result <- runM (runOutputFile @IO (runInputFile @IO (runCBV @ML (writePoem (return "roses.txt") >> readPoem (return "roses.txt")))))
       result `shouldBe` ["Roses are red,", "Violets are blue.", "I have a gun.", "Get in the van."]
+
+testDecrementToZero :: Spec
+testDecrementToZero = context "decrementToZero" $ do
+  it "decrements references to negative numbers to zero" $ do
+    result <- runM $ runIORef $ runCBV @ML $ do
+      ref <- newRef @IORef (-42)
+      decrementToZero (return ref)
+      readRef ref
+    result `shouldBe` 0
+  it "decrements references to zero to zero" $ do
+    result <- runM $ runIORef $ runCBV @ML $ do
+      ref <- newRef @IORef 0
+      decrementToZero (return ref)
+      readRef ref
+    result `shouldBe` 0
+  it "decrements references to positive numbers to zero" $ do
+    result <- runM $ runIORef $ runCBV @ML $ do
+      ref <- newRef @IORef 42
+      decrementToZero (return ref)
+      readRef ref
+    result `shouldBe` 0

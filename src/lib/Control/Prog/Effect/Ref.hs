@@ -38,22 +38,22 @@ import           Control.Prog.Signature    ((:+:) (Inl, Inr), (:<:), inject)
 ------------
 
 data Ref loc m a
-  = forall dat. NewRef (loc (Maybe dat) -> m a)
-  | forall dat. (Typeable dat) => ReadRef (loc (Maybe dat)) (Maybe dat -> m a)
-  | forall dat. (Typeable dat) => WriteRef (loc (Maybe dat)) dat (m a)
+  = forall dat. (Typeable dat) => NewRef dat (loc dat -> m a)
+  | forall dat. (Typeable dat) => ReadRef (loc dat) (dat -> m a)
+  | forall dat. (Typeable dat) => WriteRef (loc dat) dat (m a)
 
 instance SigFunctor (Ref loc) where
-  sigmap f (NewRef k)           = NewRef (f . k)
+  sigmap f (NewRef dat k)       = NewRef dat (f . k)
   sigmap f (ReadRef loc k)      = ReadRef loc (f . k)
   sigmap f (WriteRef loc dat a) = WriteRef loc dat (f a)
 
 instance HInvariant (Ref loc) where
-  hinvmap f _ (NewRef k)            = NewRef (f . k)
+  hinvmap f _ (NewRef dat k)        = NewRef dat (f . k)
   hinvmap f _ (ReadRef loc k)       = ReadRef loc (f . k)
   hinvmap f _ (WriteRef loc dat mx) = WriteRef loc dat (f mx)
 
 instance Syntax (Ref loc) where
-  handle c hdl (NewRef k)            = let ret z = fmap (const z) c in NewRef (hdl . ret . k)
+  handle c hdl (NewRef dat k)        = let ret z = fmap (const z) c in NewRef dat (hdl . ret . k)
   handle c hdl (ReadRef loc k)       = let ret z = fmap (const z) c in ReadRef loc (hdl . ret . k)
   handle c hdl (WriteRef loc dat mx) = let ret z = fmap (const z) c in WriteRef loc dat (hdl (ret mx))
 
@@ -61,13 +61,13 @@ instance Syntax (Ref loc) where
 -- Actions --
 -------------
 
-newRef :: forall loc dat sig. (Ref loc :<: sig) => Prog sig (loc (Maybe dat))
-newRef = inject (NewRef return)
+newRef :: forall loc dat sig. (Ref loc :<: sig, Typeable dat) => dat -> Prog sig (loc dat)
+newRef dat = inject (NewRef dat return)
 
-readRef :: forall loc dat sig. (Ref loc :<: sig, Typeable dat) => loc (Maybe dat) -> Prog sig (Maybe dat)
+readRef :: forall loc dat sig. (Ref loc :<: sig, Typeable dat) => loc dat -> Prog sig dat
 readRef loc = inject (ReadRef loc return)
 
-writeRef :: forall loc dat sig. (Ref loc :<: sig, Typeable dat) => loc (Maybe dat) -> dat -> Prog sig ()
+writeRef :: forall loc dat sig. (Ref loc :<: sig, Typeable dat) => loc dat -> dat -> Prog sig ()
 writeRef loc dat = inject (WriteRef loc dat (return ()))
 
 --------------
@@ -76,26 +76,26 @@ writeRef loc dat = inject (WriteRef loc dat (return ()))
 
 runIORef :: forall a sig. (Syntax sig, Embed IO :<: sig) => Prog (Ref IORef :+: sig) a -> Prog sig a
 runIORef (Var x)                       = return x
-runIORef (Op (Inl (NewRef k)))         = do
-  r <- embed (newIORef Nothing)
+runIORef (Op (Inl (NewRef b k)))       = do
+  r <- embed (newIORef b)
   runIORef (k r)
 runIORef (Op (Inl (ReadRef ref k)))    = do
   v <- embed (readIORef ref)
   runIORef (k v)
 runIORef (Op (Inl (WriteRef ref b v))) = do
-  embed (writeIORef ref (Just b))
+  embed (writeIORef ref b)
   runIORef v
 runIORef (Op (Inr sig)) = Op (hmap' runIORef sig)
 
 runSTRef :: forall s a sig. (Syntax sig, Embed (ST s) :<: sig) => Prog (Ref (STRef s) :+: sig) a -> Prog sig a
 runSTRef (Var x)                       = return x
-runSTRef (Op (Inl (NewRef k)))         = do
-  r <- embed (newSTRef Nothing)
+runSTRef (Op (Inl (NewRef b k)))       = do
+  r <- embed (newSTRef b)
   runSTRef (k r)
 runSTRef (Op (Inl (ReadRef ref k)))    = do
   v <- embed (readSTRef ref)
   runSTRef (k v)
 runSTRef (Op (Inl (WriteRef ref b v))) = do
-  embed (writeSTRef ref (Just b))
+  embed (writeSTRef ref b)
   runSTRef v
 runSTRef (Op (Inr sig)) = Op (hmap' runSTRef sig)

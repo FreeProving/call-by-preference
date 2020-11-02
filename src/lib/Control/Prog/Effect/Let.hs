@@ -27,13 +27,15 @@ where
 
 import           Data.Map                  (Map)
 import qualified Data.Map                  as Map
+import           Data.Maybe                (fromJust)
 import           Data.Typeable             (Typeable, cast)
 
 import           Control.Prog.Class        (HInvariant (hinvmap),
                                             SigFunctor (sigmap), Syntax, hmap')
 import           Control.Prog.Effect.Ref   (Ref (NewRef, ReadRef, WriteRef),
                                             newRef, readRef, writeRef)
-import           Control.Prog.Effect.State (State, evalState, get, put)
+import           Control.Prog.Effect.State (State, evalState, get, gets, modify,
+                                            put)
 import           Control.Prog.Prog         (Prog (Op, Var))
 import           Control.Prog.Signature    ((:+:) (Inl, Inr), (:<:), inject)
 import           Control.Prog.Util.Upcast  (upcast)
@@ -132,14 +134,14 @@ runCBNeedWithRef
   -> Prog sig a
 runCBNeedWithRef (Var x)               = return x
 runCBNeedWithRef (Op (Inl (Let fx k))) = do
-  r <- newRef @loc
+  r <- newRef @loc Nothing
   runCBNeedWithRef @loc $ k $ do
     mv <- readRef @loc r
     case mv of
       Just v -> return v
       Nothing  -> do
         x <- fx
-        writeRef @loc r x
+        writeRef @loc r (Just x)
         return x
 runCBNeedWithRef (Op (Inr sig)) =
   Op (hinvmap (runCBNeedWithRef @loc) (upcast (runCBNeedWithRef @loc)) sig)
@@ -168,9 +170,16 @@ data IDRef a = IDRef ScopeID
 
 runIDRef :: (Syntax sig) => Prog (Ref IDRef :+: sig) a -> Prog (State ScopeID :+: State ValueStore :+: sig) a
 runIDRef (Var x)                               = return x
-runIDRef (Op (Inl (NewRef k)))                 = do sID <- get; put (nextScopeID sID); runIDRef (k (IDRef sID))
-runIDRef (Op (Inl (ReadRef (IDRef sID) k)))    = do store <- get; runIDRef (k (lookupValue sID store))
-runIDRef (Op (Inl (WriteRef (IDRef sID) b v))) = do store <- get; put (insertValue sID b store); runIDRef v
+runIDRef (Op (Inl (NewRef b k)))               = do sID <- get; put (nextScopeID sID); modify (insertValue sID b); runIDRef (k (IDRef sID))
+runIDRef (Op (Inl (ReadRef (IDRef sID) k)))    = do
+  -- Since an 'IDRef' can only be created using 'newRef' and 'newRef' always
+  -- inserts the initial value into the value store, we can be sure that
+  -- the lookup does not return 'Nothing'.
+  value <- gets (fromJust . lookupValue sID)
+  runIDRef (k value)
+runIDRef (Op (Inl (WriteRef (IDRef sID) b v))) = do
+  modify (insertValue sID b)
+  runIDRef v
 runIDRef (Op (Inr sig))                        = Op (hmap' runIDRef (Inr (Inr sig)))
 
 -----------------

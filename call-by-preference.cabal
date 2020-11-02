@@ -29,10 +29,11 @@ extra-source-files:  CHANGELOG.md
 
 -- Common settings and dependencies that are used by all stanzas below.
 common deps
-  build-depends:     base       >=4.12 && <4.15
-                   , containers >=0.6  && <0.7
-                   , directory  >=1.3  && <1.4
-                   , extra      >=1.7  && <1.8
+  build-depends:     base        >=4.12 && <4.15
+                   , containers  >=0.6  && <0.7
+                   , directory   >=1.3  && <1.4
+                   , extra       >=1.7  && <1.8
+                   , monad-loops >=0.4  && <0.5
   default-language:  Haskell2010
   ghc-options:       -Wall -fwarn-redundant-constraints
 
