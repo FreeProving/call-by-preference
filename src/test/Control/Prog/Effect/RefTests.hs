@@ -65,32 +65,32 @@ testRefHandler
   => (forall a. Prog sig a -> IO a)
   -> Spec
 testRefHandler handler = do
-  it "should create empty new references" $ do
+  it "should read initial value" $ do
     result <- handler $ do
-      ref <- newRef @loc @()
+      ref <- newRef @loc @Int 42
       readRef ref
-    result `shouldBe` Nothing
+    result `shouldBe` 42
   it "should read most recently written value" $ do
     result <- handler $ do
-      ref <- newRef @loc @Int
+      ref <- newRef @loc @Int 0
       writeRef ref 42
       readRef ref
-    result `shouldBe` Just 42
+    result `shouldBe` 42
   it "should allow values to be overwritten" $ do
     result <- handler $ do
-      ref <- newRef @loc @Int
+      ref <- newRef @loc @Int 0
       writeRef ref 1
       writeRef ref 2
       readRef ref
-    result `shouldBe` Just 2
+    result `shouldBe` 2
   it "should create distinct references" $ do
     result <- handler $ do
-      r1 <- newRef @loc @Int
-      r2 <- newRef @loc @Int
-      writeRef r1 1
-      writeRef r2 2
+      r1 <- newRef @loc @Int 1
+      r2 <- newRef @loc @Int 2
+      writeRef r1 3
+      writeRef r2 4
       (,) <$> readRef r1 <*> readRef r2
-    result `shouldBe` (Just 1, Just 2)
+    result `shouldBe` (3, 4)
 
 testRunIORef :: Spec
 testRunIORef = context "runIORef" $
