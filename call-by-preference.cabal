@@ -97,6 +97,7 @@ test-suite call-by-preference-examples
   main-is:           Examples.hs
   ghc-options:       -main-is Examples
   other-modules:     Control.Prog.Example.ML
+                   , Control.Prog.Example.ML.Ref
                    , Control.Prog.Example.ML.TextIO
   build-depends:     call-by-preference
                    , hspec                >=2.7  && <2.8

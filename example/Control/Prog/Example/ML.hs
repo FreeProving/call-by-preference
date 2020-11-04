@@ -36,7 +36,6 @@ import           Control.Monad                  (liftM2)
 import           Control.Monad.Extra            (ifM)
 import           Control.Monad.Loops            (whileM_)
 import           Data.IORef                     (IORef)
-import           Data.Typeable                  (Typeable)
 import           System.Directory               (removeFile)
 import           Test.Hspec                     (Spec, after_, context,
                                                  describe, it, shouldBe)
@@ -44,8 +43,8 @@ import           Test.Hspec                     (Spec, after_, context,
 import           Control.Prog
 import           Control.Prog.Effect.InputFile  (InputFile, runInputFile)
 import           Control.Prog.Effect.OutputFile (OutputFile, runOutputFile)
-import           Control.Prog.Effect.Ref        (Ref, newRef, readRef, runIORef,
-                                                 writeRef)
+import           Control.Prog.Effect.Ref        (Ref, runIORef)
+import           Control.Prog.Example.ML.Ref    (newRef, readRef, writeRef)
 import qualified Control.Prog.Example.ML.TextIO as TextIO
 
 -- | Tag for 'Let' effects that should be handled like in ML-like languages
@@ -131,16 +130,12 @@ readPoem fileName = do
 ----------------
 
 decrementToZero
-  :: forall ref sig
-   . (Typeable (ref Int), Ref ref :<: sig, Let ML :<: sig)
-  => Prog sig (ref Int) -> Prog sig ()
-decrementToZero pRef = do
-  pRef' <- let_ @ML pRef
-  ref <- pRef'
+  :: forall ref sig . (Ref ref :<: sig) => Prog sig (ref Int) -> Prog sig ()
+decrementToZero ref = do
   ifM (readRef ref `lt` return 0)
-    {- then -} (writeRef ref 0)
+    {- then -} (writeRef ref (return 0))
     {- else -} (whileM_ (readRef ref `gt` return 0)
-                  {- do -} (writeRef ref =<< (readRef ref `minus` return 1)))
+                  {- do -} (writeRef ref (readRef ref `minus` return 1)))
 
 -----------
 -- Tests --
@@ -162,19 +157,19 @@ testDecrementToZero :: Spec
 testDecrementToZero = context "decrementToZero" $ do
   it "decrements references to negative numbers to zero" $ do
     result <- runM $ runIORef $ runCBV @ML $ do
-      ref <- newRef @IORef (-42)
-      decrementToZero (return ref)
+      ref <- let_ @ML (newRef @IORef (return (-42)))
+      decrementToZero ref
       readRef ref
     result `shouldBe` 0
   it "decrements references to zero to zero" $ do
     result <- runM $ runIORef $ runCBV @ML $ do
-      ref <- newRef @IORef 0
-      decrementToZero (return ref)
+      ref <- let_ @ML (newRef @IORef (return 0))
+      decrementToZero ref
       readRef ref
     result `shouldBe` 0
   it "decrements references to positive numbers to zero" $ do
     result <- runM $ runIORef $ runCBV @ML $ do
-      ref <- newRef @IORef 42
-      decrementToZero (return ref)
+      ref <- let_ @ML (newRef @IORef (return 42))
+      decrementToZero ref
       readRef ref
     result `shouldBe` 0
