@@ -36,6 +36,7 @@ import           Control.Monad                  (liftM2)
 import           Control.Monad.Extra            (ifM)
 import           Control.Monad.Loops            (whileM_)
 import           Data.IORef                     (IORef)
+import           Data.Typeable                  (Typeable)
 import           System.Directory               (removeFile)
 import           Test.Hspec                     (Spec, after_, context,
                                                  describe, it, shouldBe)
@@ -130,12 +131,15 @@ readPoem fileName = do
 ----------------
 
 decrementToZero
-  :: forall ref sig . (Ref ref :<: sig) => Prog sig (ref Int) -> Prog sig ()
-decrementToZero ref = do
-  ifM (readRef ref `lt` return 0)
-    {- then -} (writeRef ref (return 0))
-    {- else -} (whileM_ (readRef ref `gt` return 0)
-                  {- do -} (writeRef ref (readRef ref `minus` return 1)))
+  :: forall ref sig
+   . (Ref ref :<: sig, Let ML :<: sig, Typeable ref)
+  => Prog sig (ref Int) -> Prog sig ()
+decrementToZero pRef = do
+  pRef' <- let_ @ML pRef
+  ifM (readRef pRef' `lt` return 0)
+    {- then -} (writeRef pRef' (return 0))
+    {- else -} (whileM_ (readRef pRef' `gt` return 0)
+                  {- do -} (writeRef pRef' (readRef pRef' `minus` return 1)))
 
 -----------
 -- Tests --
