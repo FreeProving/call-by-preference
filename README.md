@@ -17,7 +17,7 @@ strategy.
 To use this library, GHC and Cabal are required.
 The library has been tested with the following software versions.
 
- - [GHC][software/ghc], version 8.6.5
+ - [GHC][software/ghc], version 8.8.4
  - [Cabal][software/cabal], version 3.2.0.0
 
 ### Installation
