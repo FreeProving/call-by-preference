@@ -11,16 +11,11 @@ description:
   effectful computations using algebraic effects and handlers.
 
 -- Copyright information.
-author:              Justin Andresen, Jan Christiansen
-maintainer:          jan.christiansen@hs-flensburg.de
+author:              <anonymous authors>
+maintainer:          <anonymous maintainer>
 
 license-file:        LICENSE
 license:             BSD-3-Clause
-copyright:           (c) 2020 Flensburg University of Applied Sciences and Kiel University
-
--- Links.
-homepage:            https://github.com/FreeProving/call-by-preference
-bug-reports:         https://github.com/FreeProving/call-by-preference/issues
 
 -- Build configuration.
 build-type:          Simple

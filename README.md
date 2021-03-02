@@ -28,7 +28,7 @@ In order to use the library in your own project, add the following stanza to you
 ```cabal
 source-repository-package
   type: git
-  location: git://github.com/FreeProving/call-by-preference.git
+  location: git://anonymized.link
   subdir: library
   tag: v0.1.0.0
 ```
@@ -78,7 +78,7 @@ This library is licensed under The 3-Clause BSD License.
 See the [LICENSE][call-by-preference/LICENSE] file for details.
 
 [call-by-preference/LICENSE]:
-  https://github.com/FreeProving/call-by-preference/blob/main/library/LICENSE
+  library/LICENSE
   "call-by-preference — The 3-Clause BSD License"
 
 [package/hspec]:
